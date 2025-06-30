@@ -2,6 +2,7 @@ import turtle
 import time
 import random
 
+
 # Global variables
 selected_difficulty = None
 start_time = None
@@ -222,7 +223,7 @@ def setup_player(cell_size):
     player.shape("turtle")
     player.color("blue")
     player.penup()
-    player.speed(1)
+    player.speed(0)
 
     start_x = -cell_size * len(current_maze[0]) // 2
     start_y = cell_size * len(current_maze) // 2
@@ -231,6 +232,7 @@ def setup_player(cell_size):
 
     player.goto(player_x, player_y)
     player.showturtle()
+
 
 
 def move(d_row, d_col, cell_size):
@@ -327,6 +329,9 @@ def update_timer():
         turtle.ontimer(update_timer, 1000)
 
 
+import winsound  # Add this at the top with other imports
+
+
 def player_won():
     """Handle win condition"""
     global game_won, high_scores
@@ -338,42 +343,72 @@ def player_won():
     turtle.onkey(None, "Right")
 
     elapsed = int(time.time() - start_time)
-    minutes = elapsed // 60
-    seconds = elapsed % 60
 
-    # Update high score if this time is better
-    if (high_scores[selected_difficulty] is None or
-            elapsed < high_scores[selected_difficulty]):
+    # Format time display
+    if elapsed < 60:
+        time_display = f"{elapsed}s"
+    else:
+        minutes = elapsed // 60
+        seconds = elapsed % 60
+        time_display = f"{minutes}m {seconds}s"
+
+    # Check if record was broken
+    record_broken = False
+    if high_scores[selected_difficulty] is None or elapsed < high_scores[selected_difficulty]:
+        record_broken = True
         high_scores[selected_difficulty] = elapsed
 
+    # Display win message
     win = turtle.Turtle()
     win.hideturtle()
     win.penup()
-    win.goto(0, 230)  # Positioned below timer
+    win.goto(0, 230)
     win.color("green")
-    win.write(f"Congratulations! You won in {minutes}m {seconds}s!",
+    win.write(f"Congratulations! You won in {time_display}!",
               align="center", font=("Arial", 18, "bold"))
 
-    # Victory spin
-    for _ in range(12):
-        player.right(30)
+    # Special effect for new record
+    if record_broken:
+        # Create a colorful celebration message
+        celebration = turtle.Turtle()
+        celebration.hideturtle()
+        celebration.penup()
+        celebration.goto(0, 180)
 
-    # Add Play Again button while keeping existing buttons
-    create_button("Play Again", 0, -180, "blue",
-                  lambda: start_game(selected_difficulty))
+        # Rainbow color effect
+        colors = ['red', 'orange', 'yellow', 'green', 'blue', 'purple']
+        for i, color in enumerate(colors):
+            celebration.color(color)
+            celebration.write("NEW RECORD!", align="center",
+                              font=("Arial", 24, "bold"))
+            time.sleep(0.1)
+            celebration.clear()
+
+        # Final persistent display
+        celebration.color("gold")
+        celebration.write("★ NEW RECORD! ★", align="center",
+                          font=("Arial", 22, "bold"))
+
+
 
 
 def draw_high_score():
-    """Display the current high score for the selected difficulty"""
+
     hs_turtle = turtle.Turtle()
     hs_turtle.hideturtle()
     hs_turtle.penup()
     hs_turtle.goto(300, 350)  # Top right corner
 
     if high_scores[selected_difficulty] is not None:
-        minutes = high_scores[selected_difficulty] // 60
-        seconds = high_scores[selected_difficulty] % 60
-        hs_turtle.write(f"Best: {minutes}m {seconds}s",
+        elapsed = high_scores[selected_difficulty]
+        if elapsed < 60:
+            time_display = f"{elapsed}s"
+        else:
+            minutes = elapsed // 60
+            seconds = elapsed % 60
+            time_display = f"{minutes}m {seconds}s"
+
+        hs_turtle.write(f"Best: {time_display}",
                         align="right", font=("Arial", 12, "normal"))
 
 
